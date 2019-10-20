@@ -1,42 +1,60 @@
-var slack = []
-var user = []
-var user_search = {}
-var repos_slack = {}
-var repo_user = {}
-
+var main = require('./server.js')
 var User = require('./User.js');
+var slackMsg = require('./slackMsg.js');
+
+  function sendYearlySlackMsg(){
+      console.log("In maintan");
+      console.log(main.repos_slack);
+      for (const [key, value] of Object.entries(main.repos_slack)) {
+          console.log(key, value);
+          slackMsg.msgSlack(
+            { text: 'Happy New Year' }, main.slackArray[value].url);
+      }
+  }
+
+  function alreadyMemberNewRepo(repoID, userID){
+      main.repos_slack[repoID] = main.whoInstalledApp[userID];
+  }
+
+  function addToWhoInstalledApp(userID, slackIndex){
+      if(main.whoInstalledApp[userID]){
+        return main.whoInstalledApp[userID];
+      }else{
+        main.whoInstalledApp[userID] = slackIndex;
+      }
+  }
     
   function addToSlackArray(newSlack){
-      slack.push(newSlack);
-      return slack.length-1;
+      main.slackArray.push(newSlack);
+      return main.slackArray.length-1;
   }
 
   function zeroYearly(){
-      user.forEach(function(u){
+      main.userArray.forEach(function(u){
         u.points_yearly = 0;
       });
   }
 
   function zeroMonthly(){
-      user.forEach(function(u){
+      main.userArray.forEach(function(u){
         u.points_monthly = 0;
       });
   }
 
   function zeroWeekly(){
-      user.forEach(function(u){
+      main.userArray.forEach(function(u){
         u.points_weekly = 0;
       });
   }
 
 
   function addToUserArray(newUser){
-      user.push(newUser);
-      return user.length-1;
+      main.userArray.push(newUser);
+      return main.userArray.length-1;
   }
 
   function checkUserInUserSearch(userID, repoID){
-      if ([userID, repoID] in user_search){
+      if ([userID, repoID] in main.user_search){
         console.log("User already present");
         return true;
       }
@@ -44,7 +62,7 @@ var User = require('./User.js');
   }
 
   function userInUserArray(userID){
-      user.forEach(function(u){
+      main.userArray.forEach(function(u){
         if(u.id === userID){
           return true;
         }
@@ -53,8 +71,8 @@ var User = require('./User.js');
   }
 
   function userIndexInUserArray(userID){
-      for(var i = 0; i < user.length; i+=1){
-          if (user[i].id === userID){
+      for(var i = 0; i < main.userArray.length; i+=1){
+          if (main.userArray[i].id === userID){
               return i;
           }
       }
@@ -62,31 +80,31 @@ var User = require('./User.js');
   }
 
   function addToUserSearchDict(userID, repoID, index){
-      user_search[[userID, repoID]] = index;
+      main.user_search[[userID, repoID]] = index;
   }
 
   function addToReposSlackDict(repoID, index){
-      if (repoID in repos_slack){
+      if (repoID in main.repos_slack){
         console.log("The app is already installed in the repo, and messages are send to slack: ");
-        console.log(slack[repos_slack[repoID]].channel);
+        console.log(main.slackArray[main.repos_slack[repoID]].channel);
       }else{
-        repos_slack[repoID] = index;
+        main.repos_slack[repoID] = index;
       }
   }
 
   function addToRepoUserDict(repoID, userID){
-    if(repoID in repo_user){
-        if(repo_user[repoID].indexOf(userID) === -1){
-            repo_user[repoID].puhs(userID);
+    if(repoID in main.repo_user){
+        if(main.repo_user[repoID].indexOf(userID) === -1){
+            main.repo_user[repoID].puhs(userID);
         }
     }else{
-        repo_user[repoID] = []
-        repo_user[repoID].push(userID);
+        main.repo_user[repoID] = []
+        main.repo_user[repoID].push(userID);
     }
   }
 
   function checkStreak(userID, repoID){
-      user[user_search[[userID, repoID]]].checkGitStreak();
+      main.userArray[main.user_search[[userID, repoID]]].checkGitStreak();
   }
 
   function checkUserRepoConnection(userID, repoID, userLogin, userHtmlUrl){
@@ -98,16 +116,20 @@ var User = require('./User.js');
               this.addToRepoUserDict(repoID, userID);
         }
         this.checkStreak(userID, repoID);
+  }
+
+  function installationCompleteCheck(){
+        console.log("Check for arrays and dictionaries");
         console.log("Slack array is: ");
-        console.log(slack);
+        console.log(main.slackArray);
         console.log("User array is: ");
-        console.log(user);
+        console.log(main.userArray);
         console.log("User Search dictinory is: ");
-        console.log(user_search);
+        console.log(main.user_search);
         console.log("Repos Slack dictniory is: ");
-        console.log(repos_slack);
+        console.log(main.repos_slack);
         console.log("Repos User dictniory is: ");
-        console.log(repo_user);
+        console.log(main.repo_user);
   }
 
 
@@ -124,6 +146,10 @@ module.exports = {
   zeroWeekly,
   zeroMonthly,
   zeroYearly,
-  checkStreak
+  checkStreak,
+  addToWhoInstalledApp,
+  installationCompleteCheck,
+  alreadyMemberNewRepo,
+  sendYearlySlackMsg
 };
   
