@@ -5,7 +5,7 @@ var maintainance = require('./maintain.js')
 
 module.exports = {
 
-  installation: function(code, repos) {
+  installation: function(code, repos, user) {
   
       let d = {
         client_id : "767362224017.791575114325",
@@ -28,9 +28,13 @@ module.exports = {
                                                        res.data.team_id, res.data.team_name, res.data.incoming_webhook.channel, 
                                                        res.data.incoming_webhook.channel_id, res.data.incoming_webhook.configuration_url,
                                                       res.data.incoming_webhook.url));
+                
                 repos.forEach(function(r){
                     maintainance.addToReposSlackDict(r,index);
                 })
+              
+                
+                index = maintainance.addToWhoInstalledApp(user, index);
             }
         }).catch((err) => {
             console.error(err);
