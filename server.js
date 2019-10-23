@@ -11,25 +11,11 @@ var https = require('https');
 var mock = require('./mockGitData.js');
 var app_install = [];
 var user_app_install;
-var fs = require('fs');
+var fs = require('fs');                                
 
-
-// var slackArray = require('data-store')({ path: process.cwd() + '/slackArray.json'})
-// var userArray = require('data-store')({ path: process.cwd() + '/userArray.json'})
-// var user_search = require('data-store')({ path: process.cwd() + '/userSearch.json'})
-// var repos_slack = require('data-store')({ path: process.cwd() + '/reposSlack.json'})
-// var repo_user = require('data-store')({ path: process.cwd() + '/reposUser.json'})
-// var whoInstalledApp = require('data-store')({ path: process.cwd() + '/whoInstalledApp.json'})                               
-
-var slackArray = []
-var userArray = []
-var user_search = {}
-var repos_slack = {}
-var repo_user = {}
-var whoInstalledApp = {}
 
 // run everyday at midnight
-schedule.scheduleJob('54 * * * *', () => {
+schedule.scheduleJob('30 * * * * *', () => {
   
   
   maintainance.sendYearlySlackMsg();
@@ -52,6 +38,7 @@ schedule.scheduleJob('54 * * * *', () => {
 //for all HTTP calls
 http.createServer(handleRequest).listen(3000)
 function handleRequest (request, response) {
+  
   
   //maintainance.installationCompleteCheck();
   
@@ -77,18 +64,23 @@ function handleRequest (request, response) {
         
         //change payload to json
         payload = JSON.parse(payload)
+          
+        //console.log(JSON.stringify(payload, null, 4));
       
         //check if POST is for Issue opened (new one)
         if(request.headers['x-github-event'] === 'issues' && payload.action === 'opened'){
             maintainance.checkUserRepoConnection(payload.issue.user.id, payload.repository.id, payload.issue.user.login, payload.issue.user.html_url);
-            //add point to user
-            maintainance.installationCompleteCheck();
+            maintainance.addPointsToIssueOpen(payload.issue.user.id, payload.repository.id);
+            //maintainance.installationCompleteCheck();
         }
       
          //check if POST is for Issue closed (not deleted, but completed)
         else if(request.headers['x-github-event'] === 'issues' && payload.action === 'closed'){
             maintainance.checkUserRepoConnection(payload.issue.user.id, payload.repository.id, payload.issue.user.login, payload.issue.user.html_url);
+            //maintainance.issueClose();
             //add point to user
+            maintainance.addPointsToIssueClose(payload.issue.user.id, payload.repository.id);
+            //maintainance.installationCompleteCheck();
         }
       
         //check if POST is for comment in Issue
@@ -98,17 +90,19 @@ function handleRequest (request, response) {
         }
         
         //check if POST is for PULL Request submitted (MAYBE)  
-        else if(request.headers['x-github-event'] === 'pull_request' && payload.action === 'opened'){
-            maintainance.checkUserRepoConnection(payload.issue.user.id, payload.repository.id, payload.issue.user.login, payload.issue.user.html_url);
-            //add point to user
-        }
+        // else if(request.headers['x-github-event'] === 'pull_request' && payload.action === 'opened'){
+        //     maintainance.checkUserRepoConnection(payload.issue.user.id, payload.repository.id, payload.issue.user.login, payload.issue.user.html_url);
+        //     //add point to user
+        // }
           
         
           
         //check if POST is for Push  
         else if(request.headers['x-github-event'] === 'push'){
-            maintainance.checkUserRepoConnection(payload.issue.user.id, payload.repository.id, payload.issue.user.login, payload.issue.user.html_url);
-            //add point to user
+            maintainance.checkUserRepoConnection(payload.sender.id, payload.repository.id, payload.sender.login, payload.sender.html_url);
+            maintainance.addPointsToPush(payload.sender.id,payload.repository.id);
+            //maintainance.pushMade();
+          //add point to user
         }
       
         //check if POST is for Git App Installs
@@ -137,14 +131,3 @@ function handleRequest (request, response) {
    }
    
 }
-
-
-
-module.exports = {
- slackArray,
- userArray,
- user_search,
- repos_slack,
- repo_user,
- whoInstalledApp 
-};

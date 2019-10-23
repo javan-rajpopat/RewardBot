@@ -27,7 +27,7 @@ module.exports = {
                 let index = maintainance.addToSlackArray(new Slack(code, res.data.access_token, res.data.scope, res.data.user_id, 
                                                        res.data.team_id, res.data.team_name, res.data.incoming_webhook.channel, 
                                                        res.data.incoming_webhook.channel_id, res.data.incoming_webhook.configuration_url,
-                                                      res.data.incoming_webhook.url));
+                                                      res.data.incoming_webhook.url));      
                 
                 repos.forEach(function(r){
                     maintainance.addToReposSlackDict(r,index);

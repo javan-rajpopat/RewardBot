@@ -20,9 +20,15 @@ module.exports = class User {
     this.lastActive = date.withoutTime();
     this.gitStreak = 1;
     
+    this.badge_BugFixer = 0;
+    this.badge_Committer = 0;
+    
+    
     this.point_bugsFixed = 0;
     this.points_push = 0;
     this.points_pullRequest = 0;
+    this.points_issueOpen = 0;
+    this.points_issueClose = 0;
     
     this.points_weekly = 0;
     this.points_monthly = 0;
