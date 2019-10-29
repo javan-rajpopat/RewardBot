@@ -15,22 +15,26 @@ var fs = require('fs');
 
 
 // run everyday at midnight
-schedule.scheduleJob('30 * * * * *', () => {
+schedule.scheduleJob('10 * * * * *', () => {
   
+  //maintainance.sendYearlySlackMsg();
   
-  maintainance.sendYearlySlackMsg();
-  maintainance.zeroYearly();
+  //maintainance.sendWeeklySlackMsg();
   
-  
+
   //check if new year
   if(time.newYear()){
+    maintainance.sendYearlySlackMsg('Yearly');
+    maintainance.zeroYearly();
       
   }else if(time.newMonth()){
       //send slack msgs
+      maintainance.sendYearlySlackMsg('Monthly');
       maintainance.zeroMonthly();
   }else if(time.newWeek()){
      //send slack msgs
-     maintainance.zeroWeekly();
+      maintainance.sendYearlySlackMsg('Weekly');
+      maintainance.zeroWeekly();
   }
 
 }) 
@@ -80,6 +84,16 @@ function handleRequest (request, response) {
             //maintainance.issueClose();
             //add point to user
             maintainance.addPointsToIssueClose(payload.issue.user.id, payload.repository.id);
+            if (payload.issue.hasOwnProperty('labels')){
+                let label = payload.issue.labels;          
+                for (var tag in label)
+                  {
+                    if (label[tag].name == 'bug')
+                      {
+                        maintainance.addPointsToBugFixed(payload.issue.user.id, payload.repository.id);
+                      }
+                  }
+            }
             //maintainance.installationCompleteCheck();
         }
       
@@ -90,11 +104,15 @@ function handleRequest (request, response) {
         }
         
         //check if POST is for PULL Request submitted (MAYBE)  
-        // else if(request.headers['x-github-event'] === 'pull_request' && payload.action === 'opened'){
-        //     maintainance.checkUserRepoConnection(payload.issue.user.id, payload.repository.id, payload.issue.user.login, payload.issue.user.html_url);
-        //     //add point to user
-        // }
-          
+        else if(request.headers['x-github-event'] === 'pull_request' && payload.action === 'opened'){
+            maintainance.checkUserRepoConnection(payload.pull_request.user.id, payload.repository.id, payload.pull_request.user.login, payload.pull_request.user.html_url);
+            //add point to user
+            maintainance.addPointsToPullRequest(payload.pull_request.user.id,payload.repository.id);
+        }
+         else if(request.headers['x-github-event'] === 'pull_request' && payload.action === 'closed'){
+           maintainance.checkUserRepoConnection(payload.pull_request.user.id, payload.repository.id, payload.pull_request.user.login, payload.pull_request.user.html_url);
+           maintainance.addPointsToMerge(payload.pull_request.user.id,payload.repository.id);
+         } 
         
           
         //check if POST is for Push  
