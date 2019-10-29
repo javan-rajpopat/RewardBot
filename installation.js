@@ -8,8 +8,8 @@ module.exports = {
   installation: function(code, repos, user) {
   
       let d = {
-        client_id : "767362224017.791575114325",
-        client_secret : "c8d211f1ef7e1146365fde5213bd7056",
+        client_id : '767362224017.791575114325',
+        client_secret : 'c8d211f1ef7e1146365fde5213bd7056',
         code : code,
         redirect_uri : "https://mixolydian-rhinoceros.glitch.me/"
       }
