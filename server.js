@@ -39,6 +39,28 @@ schedule.scheduleJob('10 * * * * *', () => {
 
 }) 
 
+var controller = Botkit.slackbot({
+  debug: false,
+});
+
+var bot = controller.spawn(
+{
+    token:'xoxb-767362224017-778793101122-Gbm584MhxTAst7cGBxpuVS33'
+}
+).startRTM();
+
+
+controller.hears(['Leaderboard','leaderboard'],'direct_mention',function(bot,message) {  
+  let re = maintainance.get_leader_brd(message.team);
+  console.log("Running it");
+  console.log(maintainance.get_leader_brd(message.team));
+  console.log("Running end");
+  if (re === undefined){
+    re = "Sorry, there is no leaderboard to show at this time";
+  }
+  bot.reply(message, re);  
+});
+
 //for all HTTP calls
 http.createServer(handleRequest).listen(3000)
 function handleRequest (request, response) {

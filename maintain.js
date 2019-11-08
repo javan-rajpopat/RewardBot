@@ -1,19 +1,12 @@
 var User = require('./User.js');
 var slackMsg = require('./slackMsg.js');
 
-const storeSlackArray = require('data-store')({ path: process.cwd() + '/slackArray.json' });
-// const storerepo_user = require('data-store')({ path: process.cwd() + '/repo_user.json' });
-// const storerepos_slack = require('data-store')({ path: process.cwd() + '/repos_slack.json' });
-// const MongoClient = require('mongodb').MongoClient;
-// const uri = "mongodb+srv://root:root@cluster0-6zjjg.mongodb.net/test?retryWrites=true&w=majority";
-
 var slackArray = []
 var userArray = []
 var user_search = {}
 var repos_slack = {}
 var repo_user = {}
 var whoInstalledApp = {}
-// const client = new MongoClient(uri, { useNewUrlParser: true });
 
   function sendYearlySlackMsg(type){
       console.log("In maintan");
@@ -22,24 +15,43 @@ var whoInstalledApp = {}
           let userID = repo_user[key];
           let reply = this.leaderboard_msg(userID, key, type)
           slackMsg.msgSlack(
-            { text: 'This is the ' + type +' Leaderboard based on your progress \n Name          Points \n' + reply }, slackArray[value].url);
+            { text: 'This is the ' + type +' Leaderboard \n Name          Points \n' + reply }, slackArray[value].url);
       }
   }
 
-  // get leader_board meddage
+  function get_leader_brd(team){    
+      let index;
+      
+      for (let i = 0; i <  slackArray.length; i++){
+          if (slackArray[i].team_id === team){
+              index = i;
+              break;
+          }
+      }
+    
+      for (const [key, value] of Object.entries(repos_slack)) {
+          if (value === index){
+            let userID = repo_user[key];
+            let reply = this.leaderboard_msg(userID, key, "Weekly");
+            let text = 'This is the Weekly Leaderboard \n Name          Points \n' + reply;
+            return text
+          }
+      }
+  }
+
+  // get leader_board message
   function leaderboard_msg(userID,key,type)
   {
       console.log(userID);
       let leader_board = {};
-      if(type == "Weekly")
+      if(type === "Weekly")
       {
-        for (var i in userID)
-        {
-          let index = user_search[[userID[i], key]];
-          leader_board[userArray[index].login] =  userArray[index].points_weekly;
-        }
+          for (var i in userID){
+              let index = user_search[[userID[i], key]];
+              leader_board[userArray[index].login] =  userArray[index].points_weekly;
+          }
       }
-      else if(type == 'Monthly')
+      else if(type === 'Monthly')
       {
         for (var i in userID)
         {
@@ -47,7 +59,7 @@ var whoInstalledApp = {}
           leader_board[userArray[index].login] =  userArray[index].points_monthly;
         }
       }
-      else if(type == "Yearly")
+      else if(type === "Yearly")
       {
           for (var i in userID)
           {
@@ -55,6 +67,7 @@ var whoInstalledApp = {}
             leader_board[userArray[index].login] =  userArray[index].points_yearly;
           }
       }
+    
       var items = Object.keys(leader_board).map(function(key) {
         return [key, leader_board[key]];
       });
@@ -63,74 +76,68 @@ var whoInstalledApp = {}
       items.sort(function(first, second) {
         return second[1] - first[1];
       });
-      let reply = '';
-      for (let i in items){
-        if (i > 2){
-          break;
+    
+        let reply = '';
+        console.log(leader_board)
+
+        for (let i in items){
+            if (i > 2){
+              break;
+            }
+            console.log(items[i]);
+            reply = reply + items[i][0] + '          ' + items[i][1] + '\n';
         }
-        console.log(items[i]);
-        reply = reply + items[i][0] + '          ' + items[i][1] + '\n';
-      }
-      return reply;
+    
+        return reply;
   }
   
 
   function addPointsToIssueOpen(userID, repoID){
       userArray[user_search[[userID, repoID]]].points_issueOpen += 1;
-      userArray[user_search[[userID, repoID]]].total_points += 1;
-      userArray[user_search[[userID, repoID]]].points_weekly += 1;
-      userArray[user_search[[userID, repoID]]].points_monthly += 1;
-      userArray[user_search[[userID, repoID]]].points_yearly += 1;
+      this.addLeaderBoardPoints(userID, repoID, 1);
       this.checkForBadgeTopContributer(user_search[[userID, repoID]], repoID);      
   }
 
   function addPointsToIssueClose(userID, repoID){
       userArray[user_search[[userID, repoID]]].points_issueClose += 1;
-      userArray[user_search[[userID, repoID]]].total_points += 1;
-      userArray[user_search[[userID, repoID]]].points_weekly += 1;
-      userArray[user_search[[userID, repoID]]].points_monthly += 1;
-      userArray[user_search[[userID, repoID]]].points_yearly += 1;
-      this.checkForBadgeBugFixer(user_search[[userID, repoID]], repoID);    
+      this.addLeaderBoardPoints(userID, repoID, 1);
+      // this.checkForBadgeBugFixer(user_search[[userID, repoID]], repoID);    
       this.checkForBadgeTopContributer(user_search[[userID, repoID]], repoID);
   }
 
   function addPointsToPush(userID, repoID){
       userArray[user_search[[userID, repoID]]].points_push += 3;
-      userArray[user_search[[userID, repoID]]].total_points += 3;
-      userArray[user_search[[userID, repoID]]].points_weekly += 3;
-      userArray[user_search[[userID, repoID]]].points_monthly += 3;
-      userArray[user_search[[userID, repoID]]].points_yearly += 3;
+      this.addLeaderBoardPoints(userID, repoID, 3);
       this.checkForBadgeCommitter(user_search[[userID, repoID]], repoID);
       this.checkForBadgeTopContributer(user_search[[userID, repoID]], repoID);
   }
 
   function addPointsToPullRequest(userID, repoID){
       userArray[user_search[[userID, repoID]]].points_pullRequest += 3;
-      userArray[user_search[[userID, repoID]]].total_points += 3;
-      userArray[user_search[[userID, repoID]]].points_weekly += 3;
-      userArray[user_search[[userID, repoID]]].points_monthly += 3;
-      userArray[user_search[[userID, repoID]]].points_yearly += 3;
+      this.addLeaderBoardPoints(userID, repoID, 3);
       this.checkForBadgeTopContributer(user_search[[userID, repoID]], repoID);
   }
   
   function addPointsToMerge(userID, repoID){
       userArray[user_search[[userID, repoID]]].points_pullRequest += 5;
-      userArray[user_search[[userID, repoID]]].total_points += 5;
-      userArray[user_search[[userID, repoID]]].points_weekly += 5;
-      userArray[user_search[[userID, repoID]]].points_monthly += 5;
-      userArray[user_search[[userID, repoID]]].points_yearly += 5;
+      this.addLeaderBoardPoints(userID, repoID, 5);
       this.checkForBadgeTopContributer(user_search[[userID, repoID]], repoID);
   }
 
   function addPointsToBugFixed(userID, repoID)
   {
       userArray[user_search[[userID, repoID]]].point_bugsFixed += 1;
-      userArray[user_search[[userID, repoID]]].total_points += 1;
-      userArray[user_search[[userID, repoID]]].points_weekly += 1;
-      userArray[user_search[[userID, repoID]]].points_monthly += 1;
-      userArray[user_search[[userID, repoID]]].points_yearly += 1;
+      this.addLeaderBoardPoints(userID, repoID, 1);
       this.checkForBadgeBugFixer(user_search[[userID, repoID]], repoID);    
       this.checkForBadgeTopContributer(user_search[[userID, repoID]], repoID);
+  }
+
+  function addLeaderBoardPoints(userID, repoID, points){
+      userArray[user_search[[userID, repoID]]].total_points += points;
+      userArray[user_search[[userID, repoID]]].points_weekly += points;
+      userArray[user_search[[userID, repoID]]].points_monthly += points;
+      userArray[user_search[[userID, repoID]]].points_yearly += points;
+    
   }
 
   function checkForBadgeBugFixer(index, repoID){
@@ -165,12 +172,6 @@ var whoInstalledApp = {}
           slackMsg.msgSlack({text: "Please congratulate User: " + userArray[index].login + 
                 "on receiving Badge: Committer of Level: " + userArray[index].badge_Committer + "."}, slackArray[repos_slack[repoID]].url);
       }
-    console.log('userArray');
-    console.log(userArray);
-    console.log('userSearch');
-    console.log(user_search);
-    console.log('slackArray');
-    console.log(slackArray);
   }
 
   function issueClose(){
@@ -202,8 +203,6 @@ var whoInstalledApp = {}
   function addToSlackArray(newSlack){
       //slackArray = storeSlackArray.get()
       slackArray.push(newSlack);
-      storeSlackArray.set(newSlack);
-    console.log(slackArray);
       return slackArray.length-1;
   }
 
@@ -287,12 +286,6 @@ var whoInstalledApp = {}
       userArray[user_search[[userID, repoID]]].checkGitStreak();
   }
 
-  function checkAnniversary(userID, repoID){
-      var anniv = userArray[user_search[[userID, repoID]]].checkGitAnniversary();
-      var Anniv_msg = "Happy " + userID + " " + anniv + " Anniversary";
-      console.log(Anniv_msg);
-      //slackMsg.msgSlack({text: 'Congratulations, You are starting to use reward bot'},slackArray[slackIndex].url);
-  }
 
   function checkUserRepoConnection(userID, repoID, userLogin, userHtmlUrl){
         if(!this.checkUserInUserSearch(userID, repoID)){
@@ -319,6 +312,15 @@ var whoInstalledApp = {}
         console.log(repos_slack);
         console.log("Repos User dictniory is: ");
         console.log(repo_user);
+  }
+
+  function checkAnniversary(userID, repoID){
+      var anniv = userArray[user_search[[userID, repoID]]].checkGitAnniversary();
+      var Anniv_msg = "Happy " + userID + " " + anniv + " Anniversary";
+      console.log(Anniv_msg);
+      if(anniv !== "No")
+        slackMsg.msgSlack({text: "Please congratulate " + userArray[user_search[[userID, repoID]]].login +  
+                " on their " + anniv + " work anniversary!"}, slackArray[repos_slack[repoID]].url);
   }
 
 
@@ -354,5 +356,7 @@ module.exports = {
   checkForBadgeCommitter,  
   checkForBadgeTopContributer,
   checkforBadgeTheUnstoppable,
+  addLeaderBoardPoints,
+  get_leader_brd,
 };
   

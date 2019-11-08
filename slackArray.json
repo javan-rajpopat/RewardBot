@@ -1,12 +1,12 @@
 {
-  "code": "767362224017.810497314820.f4c2b7049c3b81321f29f8027bd9d297fab4fd097e3e4716323e3e4ea9c4f0c7",
-  "access_token": "xoxp-767362224017-773317964436-792413127250-4973c9484413c9fda4c3d91e83b669b4",
-  "scope": "identify,bot,incoming-webhook,channels:history,groups:history,channels:read,groups:read,channels:write,chat:write:user,chat:write:bot,groups:write,calls:write,calls:read",
-  "uder_id": "UNR9BUCCU",
+  "code": "767362224017.819789975157.79fbbb0b3db4af0a5b125380bdfa129efc6979fbe4381a0e2517a9827ecd580f",
+  "access_token": "xoxp-767362224017-796474338887-805226413669-b8790ab477cd688c488e1584b4862be9",
+  "scope": "identify,incoming-webhook",
+  "uder_id": "UPEDY9YS3",
   "team_id": "TNKAN6L0H",
   "team_name": "CSC510_6",
   "channel": "#general",
   "channel_id": "CNR9BN9SQ",
-  "config_url": "https://csc5106.slack.com/services/BPHEEH2Q3",
-  "url": "https://hooks.slack.com/services/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"
+  "config_url": "https://csc5106.slack.com/services/BQ5JSJ1QF",
+  "url": "https://hooks.slack.com/services/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"
 }
