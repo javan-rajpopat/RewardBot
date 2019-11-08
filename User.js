@@ -64,14 +64,15 @@ module.exports = class User {
      var Result = Math.round(this.lastActive.getTime() - this.joinDate.getTime()) / (one_day); 
      // To remove the decimals from the (Result) resulting days value 
      var Final_Result = Result.toFixed(0);
-     
      //return true;
     if(Final_Result==7)
       return "Weekly";
-    if(Final_Result==365)
+    else if(Final_Result==365)
       return "Yearly";
-    if(Final_Result==30)
+    else if(Final_Result==30)
       return "Monthly";
+    else 
+      return "No";
     
   }
   
